@@ -25,24 +25,24 @@ Example usage:
 import argparse
 import io
 import time
-
+#import sys
+#reload(sys)
+#sys.setdefaultencoding('utf-8')
 
 def transcribe_file(speech_file):
     """Transcribe the given audio file asynchronously."""
     from google.cloud import speech
     speech_client = speech.Client()
-
     with io.open(speech_file, 'rb') as audio_file:
         content = audio_file.read()
         audio_sample = speech_client.sample(
             content,
             source_uri=None,
-            encoding='LINEAR16',
-            sample_rate_hertz=16000)
+            encoding='LINEAR16')
 
-    operation = audio_sample.long_running_recognize('en-US')
+    operation = audio_sample.long_running_recognize('fr-FR')
 
-    retry_count = 100
+    retry_count = 200
     while retry_count > 0 and not operation.complete:
         retry_count -= 1
         time.sleep(2)
@@ -63,14 +63,13 @@ def transcribe_gcs(gcs_uri):
     """Asynchronously transcribes the audio file specified by the gcs_uri."""
     from google.cloud import speech
     speech_client = speech.Client()
-
+    file = open('transcript.txt','w')
     audio_sample = speech_client.sample(
         content=None,
         source_uri=gcs_uri,
-        encoding='FLAC',
-        sample_rate_hertz=16000)
+        encoding='LINEAR16')
 
-    operation = audio_sample.long_running_recognize('en-US')
+    operation = audio_sample.long_running_recognize('fr-FR')
 
     retry_count = 100
     while retry_count > 0 and not operation.complete:
@@ -79,15 +78,16 @@ def transcribe_gcs(gcs_uri):
         operation.poll()
 
     if not operation.complete:
-        print('Operation not complete and retry limit reached.')
+        print('Operation not complete and retry limit reached. BUUUUUUG   ')
         return
 
     alternatives = operation.results
     for alternative in alternatives:
-        print('Transcript: {}'.format(alternative.transcript))
-        print('Confidence: {}'.format(alternative.confidence))
+        file.write(alternative.transcript.encode('utf-8'))
+    #    print('Transcript: {}'.format(alternative.transcript))
+     #    print('Confidence: {}'.format(alternative.confidence))
     # [END send_request_gcs]
-
+    file.close()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
