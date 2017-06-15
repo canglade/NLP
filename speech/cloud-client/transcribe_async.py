@@ -63,7 +63,10 @@ def transcribe_gcs(gcs_uri):
     """Asynchronously transcribes the audio file specified by the gcs_uri."""
     from google.cloud import speech
     speech_client = speech.Client()
-    file = open('transcript.txt','w')
+    filename = args.path[33:]
+    filename = filename[:-4] + '.txt'
+    filepath = 'transcripts/' + filename
+    file = open(filepath,'w')
     audio_sample = speech_client.sample(
         content=None,
         source_uri=gcs_uri,
